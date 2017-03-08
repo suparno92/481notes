@@ -76,3 +76,6 @@ ssl-key=/etc/local/masterB/server-key.pem
 
 
 GRANT ALL PRIVILEGES ON *.* TO 'ssluser'@'192.168.1.77' IDENTIFIED BY 'tintin' REQUIRE SSL;
+
+
+tcpdump -i eth0 -nN -vvv -xX -s 1500 port 3306
