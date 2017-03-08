@@ -1,0 +1,78 @@
+
+MYSQL 5.6
+-----------
+wget http://repo.mysql.com/mysql-community-release-el6-5.noarch.rpm
+rpm -ivh mysql-community-release-el6-5.noarch.rpm
+
+yum install mysql-server
+
+
+
+
+
+
+
+
+
+
+root CA Folder
+----------------
+openssl genrsa 2048 > ca-key.pem
+openssl req -sha256 -new -x509 -nodes -days 3650 -key ca-key.pem > ca-cert.pem
+
+
+MasterA Folder
+----------------
+openssl x509 -sha256 -req -in server-req.pem -days 730 -CA ../ca-cert.pem -CAkey ../ca-key.pem -set_serial 01 > server-cert.pem
+openssl rsa -in server-key.pem -out server-key.pem
+openssl x509 -sha256 -req -in server-req.pem -days 730 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-cert.pem
+
+MasterB Folder
+----------------
+openssl x509 -sha256 -req -in server-req.pem -days 730 -CA ../ca-cert.pem -CAkey ../ca-key.pem -set_serial 01 > server-cert.pem
+openssl rsa -in server-key.pem -out server-key.pem
+openssl x509 -sha256 -req -in server-req.pem -days 730 -CA ca-cert.pem -CAkey ca-key.pem -set_serial 01 > server-cert.pem
+
+
+
+
+
+cp ca-cert.pem masterA/
+cp ca-cert.pem masterB/
+
+scp *.* root@192.168.200.69:/etc/local/masterA/*
+
+
+
+
+
+MasterA my.cnf
+---------------
+ssl-ca=/etc/local/masterA/ca-cert.pem
+ssl-cert=/etc/local/masterA/server-cert.pem
+ssl-key=/etc/local/masterA/server-key.pem
+
+[client]
+ssl-ca=/etc/local/masterA/ca-cert.pem
+ssl-cert=/etc/local/masterA/server-cert.pem
+ssl-key=/etc/local/masterA/server-key.pem
+
+
+
+
+
+MasterB my.cnf
+---------------
+ssl-ca=/etc/local/masterB/ca-cert.pem
+ssl-cert=/etc/local/masterB/server-cert.pem
+ssl-key=/etc/local/masterB/server-key.pem
+
+[client]
+ssl-ca=/etc/local/masterB/ca-cert.pem
+ssl-cert=/etc/local/masterB/server-cert.pem
+ssl-key=/etc/local/masterB/server-key.pem
+
+
+
+
+GRANT ALL PRIVILEGES ON *.* TO 'ssluser'@'192.168.1.77' IDENTIFIED BY 'tintin' REQUIRE SSL;
